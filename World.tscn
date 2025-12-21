@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://cdy4ifsmbmmb6"]
+
+[ext_resource type="PackedScene" uid="uid://bw8lutsecsoxr" path="res://Cell.tscn" id="1_2dftf"]
+[ext_resource type="Script" uid="uid://bihv66hf1h2ue" path="res://FoodSpawner.gd" id="2_2dftf"]
+[ext_resource type="Script" uid="uid://460nvg0i5lot" path="res://Camera2d.gd" id="3_bcbcq"]
+
+[node name="World" type="Node2D"]
+
+[node name="Cell" parent="." instance=ExtResource("1_2dftf")]
+position = Vector2(215, 148)
+
+[node name="FoodSpawner" type="Node2D" parent="."]
+script = ExtResource("2_2dftf")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("3_bcbcq")

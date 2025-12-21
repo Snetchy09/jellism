@@ -1,0 +1,31 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="jellism"
+run/main_scene="uid://cdy4ifsmbmmb6"
+config/features=PackedStringArray("4.5", "Mobile")
+config/icon="res://icon.svg"
+
+[layer_names]
+
+2d_physics/layer_1="membrane"
+2d_physics/layer_2="nucleus"
+2d_physics/layer_3="food"
+2d_physics/layer_4="cell_core"
+
+[physics]
+
+2d/solver/solver_iterations=30
+
+[rendering]
+
+renderer/rendering_method="mobile"
