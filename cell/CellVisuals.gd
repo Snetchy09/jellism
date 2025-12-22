@@ -52,7 +52,6 @@ func draw(cell: Node2D, time: float = 0.0):
 			var p2 = Vector2(cos(angle), sin(angle)) * (cell.current_radius * 0.4)
 			cell.draw_line(p1, p2, Color(3.0, 0.0, 0.0, 0.8), 4.0)
 		return
-	#hii
 	# 1.  Carnivore - Spikes
 	if cell.current_role == 5:  # CARNIVORE
 		cell.modulate = Color(2.5, 0.1, 0.1)
