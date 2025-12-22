@@ -39,6 +39,37 @@ func update_nucleus_visuals(cell: Node2D, delta: float, time:  float):
 		cell.nucleus.modulate = base_color
 
 func draw(cell: Node2D, time: float = 0.0):
+
+	# 1. NUCLEUS (jelly lag)
+	var nucleus_offset = (cell.external_force * -0.05).limit_length(10.0)
+	cell.draw_circle(
+		nucleus_offset,
+		cell.current_radius * 0.3,
+		Color(0, 0, 0, 0.2)
+	)
+	cell.draw_circle(
+		nucleus_offset,
+		cell.current_radius * 0.25,
+		cell.modulate.darkened(0.4)
+	)
+
+	# 2. INTERNAL ORGANELLES
+	for i in range(3):
+		var pos = Vector2(cos(i * 2.0), sin(i * 2.0)) * (cell.current_radius * 0.5)
+		cell.draw_circle(
+			pos + (cell.external_force * -0.02),
+			2.0,
+			Color(1, 1, 1, 0.3)
+		)
+
+	# 3. RIM LIGHTING
+	var points := PackedVector2Array()
+	for i in range(8):
+		var a = PI * 1.1 + (i * 0.15)
+		points.append(Vector2(cos(a), sin(a)) * (cell.current_radius * 0.85))
+
+	cell.draw_polyline(points, Color(1, 1, 1, 0.5), 3.0)
+
 	# BEING EATEN - RED GLOW & SUCTION
 	if cell.is_being_eaten and is_instance_valid(cell.being_eaten_by):
 		var eaten_pulse = sin(time * 15.0) * 0.5 + 0.5

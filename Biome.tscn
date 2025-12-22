@@ -1,0 +1,96 @@
+[gd_scene load_steps=3 format=3 uid="uid://b1lp6wpb873um"]
+
+[sub_resource type="GDScript" id="GDScript_k3e1w"]
+script/source = "extends Area2D
+
+class_name Biome
+
+@export var biome_name: String = \"Default Biome\"
+@export var comfort: float = 0.5 # 0-1, how nice this biome is in general
+@export var nutrient_richness: float = 0.5 # 0-1, how much food typically spawns here
+@export var temperature: float = 0.5 # 0-1, can be used later for role preferences
+@export var base_color: Color = Color(0.15, 0.2, 0.3, 0.45)
+
+# World placement / shape controls
+@export var randomize_on_start: bool = true
+@export var world_half_extents: Vector2 = Vector2(2000, 2000)
+@export var min_radius: float = 400.0
+@export var max_radius: float = 900.0
+@export var z_index_in_world: int = -10
+
+# Shape / color controls
+@export var allow_circle: bool = false # default: no perfect circles
+@export var allow_ellipse: bool = true
+@export var allow_blob: bool = true
+@export var randomize_color: bool = true
+
+@onready var poly: Polygon2D = $Polygon2D
+@onready var collision_shape: CollisionShape2D = $CollisionShape2D
+
+enum ShapeMode { CIRCLE, ELLIPSE, BLOB }
+
+func _ready():
+	add_to_group(\"biomes\")
+	z_index = z_index_in_world
+	if poly:
+		poly.color = base_color
+		poly.z_index = z_index_in_world
+	if randomize_on_start:
+		_randomize_biome()
+
+func _randomize_biome():
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	# Random world position in a big rectangle around (0,0)
+	global_position = Vector2(
+		rng.randf_range(-world_half_extents.x, world_half_extents.x),
+		rng.randf_range(-world_half_extents.y, world_half_extents.y)
+	)
+	# Random radius / size
+	var radius: float = rng.randf_range(min_radius, max_radius)
+	if collision_shape and collision_shape.shape is CircleShape2D:
+		collision_shape.shape.radius = radius
+	# Randomize base color a bit so each biome looks different
+	if randomize_color and poly:
+		var t: float = rng.randf()
+		var col1: Color = Color(0.1, 0.25, 0.3, 0.3)
+		var col2: Color = Color(0.9, 1.0, 0.7, 0.55)
+		base_color = col1.lerp(col2, t)
+		poly.color = base_color
+	# Choose a random shape mode allowed by flags
+	var modes := []
+	if allow_circle: modes.append(ShapeMode.CIRCLE)
+	if allow_ellipse: modes.append(ShapeMode.ELLIPSE)
+	if allow_blob: modes.append(ShapeMode.BLOB)
+	if modes.is_empty():
+		modes.append(ShapeMode.BLOB)
+	var mode: int = modes[rng.randi() % modes.size()]
+	# Build polygon according to mode
+	if poly:
+		var pts := PackedVector2Array()
+		var segments := 48
+		var stretch_x: float = 1.0
+		var stretch_y: float = 1.0
+		if mode == ShapeMode.ELLIPSE:
+			stretch_x = rng.randf_range(0.5, 1.6)
+			stretch_y = rng.randf_range(0.5, 1.6)
+		for i in range(segments):
+			var angle: float = TAU * float(i) / float(segments)
+			var r: float = radius
+			if mode == ShapeMode.BLOB:
+				var wobble: float = rng.randf_range(-0.35, 0.35)
+				r *= 1.0 + wobble
+			var dir := Vector2(cos(angle) * stretch_x, sin(angle) * stretch_y).normalized()
+			pts.append(dir * r)
+		poly.polygon = pts
+"
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_k3e1w"]
+
+[node name="Biome" type="Area2D" groups=["biomes"]]
+script = SubResource("GDScript_k3e1w")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_k3e1w")
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
