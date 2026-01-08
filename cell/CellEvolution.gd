@@ -41,7 +41,6 @@ func check_evolution(cell: Node2D):
 				cell.connected_cells.erase(other)
 				other.connected_cells.erase(cell)
 				connection_maturity.erase(other)
-				print("Connection failed!")
 				return
 	
 	var avg_stability = total_stability / cell.connected_cells.size()

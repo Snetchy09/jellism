@@ -15,6 +15,10 @@ run/main_scene="res://World.tscn"
 config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/ai_architect/plugin.cfg", "res://addons/ai_assistant_hub/plugin.cfg")
+
 [layer_names]
 
 2d_physics/layer_1="membrane"
@@ -25,6 +29,13 @@ config/icon="res://icon.svg"
 [physics]
 
 2d/solver/solver_iterations=30
+
+[plugins]
+
+ai_assistant_hub/llm_api="gemini_api"
+ai_assistant_hub/preferences/thinking_target=0
+ai_assistant_hub/preferences/skip_greeting=false
+ai_assistant_hub/preferences/always_scroll_to_bottom=false
 
 [rendering]
 

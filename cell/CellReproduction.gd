@@ -9,11 +9,11 @@ func update_age(delta: float):
 	age += delta
 
 func start_division(cell: Node2D) -> bool:
-	if cell. is_splitting:
+	if cell.is_splitting:
 		return false
 	
 	var current_time = Time.get_ticks_msec() * 0.001
-	if current_time - last_division_time < division_cooldown: 
+	if current_time - last_division_time < division_cooldown:
 		return false
 	
 	cell.is_splitting = true
@@ -26,7 +26,7 @@ func complete_division(cell: Node2D):
 	cell.pinch_amount = 0.0
 	cell.energy = 45.0
 	
-	var split_dir = Vector2.LEFT.  rotated(randf() * PI * 2)
+	var split_dir = Vector2.LEFT.rotated(randf() * PI * 2)
 	var cell_scene = load("res://Cell.tscn")
 	
 	if cell_scene:
@@ -37,10 +37,9 @@ func complete_division(cell: Node2D):
 		
 		var should_stay_connected = false
 		
-		# CARNIVORES DON'T FORM BONDS
-		if cell.current_role == 5:  # CARNIVORE
+		if cell.current_role == 5:
 			should_stay_connected = false
-		elif cell.organism_level == 1:  
+		elif cell.organism_level == 1:
 			should_stay_connected = randf() < 0.15
 		else:
 			should_stay_connected = randf() < 0.5
@@ -61,21 +60,21 @@ func complete_division(cell: Node2D):
 			cell.external_force = split_dir * 400.0
 			sister.external_force = -split_dir * 400.0
 		
-		# Inherit traits
 		sister.organism_level = cell.organism_level
 		sister.maturity = cell.maturity
 		
-		# PROPERLY INHERIT CARNIVORE ROLE
-		if cell.current_role == 5:  # If parent is carnivore
-			sister. current_role = 5  # Sister is ALSO carnivore
+		if cell.current_role == 5:
+			sister.current_role = 5
 			sister.modulate = Color(2.5, 0.1, 0.1)
 			print("🔴 CARNIVORE OFFSPRING SPAWNED!")
-		# Random chance for normal cells to mutate into carnivore (rare)
 		elif cell.organism_level == 1 and randf() < 0.05:
 			sister.current_role = 5
 			sister.modulate = Color(2.5, 0.1, 0.1)
 			print("🔴 WILD CARNIVORE MUTATION!")
 		
-		if cell.is_mega_fused: 
+		sister.genetics = cell.genetics.copy()
+		sister.modulate = sister.genetics.get_color()
+		
+		if cell.is_mega_fused:
 			sister.is_mega_fused = true
-			sister. mega_type = cell.mega_type
+			sister.mega_type = cell.mega_type

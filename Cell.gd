@@ -1,6 +1,5 @@
 extends Node2D
 
-# ===== CORE SYSTEMS =====
 var metabolism: CellMetabolism
 var physics: CellPhysics
 var brain: CellBrain
@@ -8,8 +7,8 @@ var evolution: CellEvolution
 var reproduction: CellReproduction
 var visuals: CellVisuals
 var interaction: CellInteraction
+var genetics: Genetics
 
-# ===== SHARED STATE =====
 @export_group("Metabolism")
 @export var energy: float = 80.0
 @export var energy_decay_rate: float = 1.5
@@ -26,17 +25,16 @@ var interaction: CellInteraction
 @export var vertex_count: int = 32
 @export var stiffness: float = 160.0
 @export var damping: float = 14.0
-@export var wobble_intensity: float = 0.25  # NEW
-@export var movement_deformation: float = 0.5  # NEW
-@export var fusion_blend_smoothness: float = 1.2  # NEW
-@export var fusion_max_stretch: float = 1.8  # NEW
+@export var wobble_intensity: float = 0.25
+@export var movement_deformation: float = 0.5
+@export var fusion_blend_smoothness: float = 1.2
+@export var fusion_max_stretch: float = 1.8
 
 @export_group("Neural/Connections")
 @export var max_connections: int = 2
 
-# STATE
 var connected_cells: Array = []
-var current_role: int = 0  # Role enum
+var current_role: int = 0
 var is_dragging: bool = false
 var is_splitting: bool = false
 var pinch_amount: float = 0.0
@@ -47,27 +45,25 @@ var food_in_range: Array = []
 var external_force := Vector2.ZERO
 var noise := FastNoiseLite.new()
 var current_radius: float = 50.0
-var signal_pulse:  float = 0.0
-var shared_target: Vector2 = Vector2.ZERO  # <-- ADD
-var organism_level: int = 1  # <-- ADD
-var is_mega_fused: bool = false  # <-- ADD
-var mega_type: String = ""  # <-- ADD
-var maturity:  float = 0.0  # <-- ADD
-var is_being_eaten:  bool = false
-var being_eaten_by:  Node2D = null
-var eaten_amount: float = 0.0  # Progress of being eaten (0-1)
-var digestion_time: float = 1.5  # How long it takes to eat a cell
+var signal_pulse: float = 0.0
+var shared_target: Vector2 = Vector2.ZERO
+var organism_level: int = 1
+var is_mega_fused: bool = false
+var mega_type: String = ""
+var maturity: float = 0.0
+var is_being_eaten: bool = false
+var being_eaten_by: Node2D = null
+var eaten_amount: float = 0.0
+var digestion_time: float = 1.5
 
-# REFS
-@onready var membrane:  Polygon2D = $Polygon2D
+@onready var membrane: Polygon2D = $Polygon2D
 @onready var nucleus: Polygon2D = $Nucleus
 
 func _ready():
 	add_to_group("cells")
-	noise. seed = randi()
+	noise.seed = randi()
 	target_pos = global_position
 	
-	# Initialize systems - REMOVE (self) parameter
 	metabolism = CellMetabolism.new()
 	physics = CellPhysics.new()
 	brain = CellBrain.new()
@@ -75,25 +71,25 @@ func _ready():
 	reproduction = CellReproduction.new()
 	visuals = CellVisuals.new()
 	interaction = CellInteraction.new()
+	genetics = Genetics.new()
 	
-	# Initialize vertices
 	_initialize_vertices()
-	
-	# Update nucleus
 	visuals.update_nucleus_shape(self)
 	
-	tree_exited. connect(_on_tree_exited)
+	tree_exited.connect(_on_tree_exited)
+	
+	modulate = genetics.get_color()
 
 func _initialize_vertices():
 	for i in range(vertex_count):
 		var angle = (PI * 2 / vertex_count) * i
 		var pos = global_position + Vector2(cos(angle), sin(angle)) * current_radius
-		global_vertices. append(pos)
+		global_vertices.append(pos)
 		velocities.append(Vector2.ZERO)
 
 func _input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event. pressed:
+		if event.pressed:
 			if get_global_mouse_position().distance_to(global_position) < current_radius * 1.5:
 				is_dragging = true
 				get_viewport().set_input_as_handled()
@@ -101,47 +97,40 @@ func _input(event):
 			is_dragging = false
 
 var logic_timer: float = 0.0
-var age:  float = 0.0
+var age: float = 0.0
 var maturation_age: float = 5.0
 
-func _physics_process(delta:   float):
+func _physics_process(delta: float):
 	var time = Time.get_ticks_msec() * 0.001
 	
-	# Track age
 	age += delta
 	
-	# 1. METABOLISM
-	metabolism. update(self, delta)
+	metabolism.update(self, delta)
 	
-	# 2. PHYSICS
-	physics. apply_separation(self, delta)
+	physics.apply_separation(self, delta)
 	physics.apply_bond_physics(self, delta)
 	physics.update_membrane(self, time, delta)
 	
-	# 3. BEHAVIOR & EATING
 	if is_splitting:
 		pinch_amount = move_toward(pinch_amount, 1.0, delta * 0.6)
 		if pinch_amount >= 1.0:
-			reproduction. complete_division(self)
+			reproduction.complete_division(self)
 	elif is_dragging:
 		target_pos = get_global_mouse_position()
 		global_position = global_position.lerp(target_pos, delta * 20.0)
 	else:
 		brain.decide_behavior(self, delta, time)
 	
-	# CARNIVORE EATING - Do this every frame
 	if current_role == 5:
 		interaction.update_eating(self, delta)
 	
 	global_position += external_force * delta
 	external_force = external_force.lerp(Vector2.ZERO, delta * 5.0)
 	
-	# 4. VISUALS
 	visuals.update_membrane(self, time, delta)
 	visuals.update_nucleus_visuals(self, delta, time)
 	signal_pulse = move_toward(signal_pulse, 0.0, delta * 2.0)
 	
-	# 5. EVOLUTION (every 2 seconds)
 	logic_timer += delta
 	if logic_timer >= 2.0:
 		evolution.check_evolution(self)
@@ -151,11 +140,11 @@ func _physics_process(delta:   float):
 
 func _draw():
 	var time = Time.get_ticks_msec() * 0.001
-	visuals.draw(self, time)  # <-- Pass time here
+	visuals.draw(self, time)
 
 func _on_body_area_area_entered(area: Area2D):
-	print("DEBUG: Body area entered: ", area. name, " in cell ", name)
-	interaction. handle_area_entered(self, area)
+	print("DEBUG: Body area entered: ", area.name, " in cell ", name)
+	interaction.handle_area_entered(self, area)
 
 func _on_sense_area_area_entered(area: Area2D):
 	print("DEBUG: Sense area entered: ", area.name)
@@ -168,4 +157,7 @@ func _on_sense_area_area_exited(area: Area2D):
 func _on_tree_exited():
 	for other in connected_cells:
 		if is_instance_valid(other):
-			other.connected_cells. erase(self)
+			other.connected_cells.erase(self)
+	
+	var waste_cloud = WasteCloud.get_instance()
+	waste_cloud.add_waste(global_position, energy * 2.0)

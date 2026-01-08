@@ -1,15 +1,13 @@
 extends Node2D
 
-@export var food_scene: PackedScene = preload("res://Food.tscn") # Check your path!
+@export var food_scene: PackedScene = preload("res://Food.tscn")
 @export var spawn_interval: float = 0.5
 @export var max_food: int = 25
-# Half-size of the world in each direction (you can tweak this in the editor)
 @export var world_half_extents: Vector2 = Vector2(2000, 2000)
 
 var rng := RandomNumberGenerator.new()
 
 func _ready():
-	# Start spawning
 	rng.randomize()
 	var timer = Timer.new()
 	add_child(timer)
@@ -23,12 +21,24 @@ func _on_spawn_timer():
 	if current_food < max_food:
 		var food = food_scene.instantiate()
 		
-		# Spawn anywhere in the world rectangle centered at (0, 0)
-		var spawn_pos := Vector2(
-			rng.randf_range(-world_half_extents.x, world_half_extents.x),
-			rng.randf_range(-world_half_extents.y, world_half_extents.y)
-		)
+		var spawn_pos = Vector2.ZERO
+		var attempts = 0
+		var max_attempts = 5
 		
-		# Add to the world first, then set global position so it truly respects world coords
+		while attempts < max_attempts:
+			spawn_pos = Vector2(
+				rng.randf_range(-world_half_extents.x, world_half_extents.x),
+				rng.randf_range(-world_half_extents.y, world_half_extents.y)
+			)
+			
+			var waste = WasteCloud.get_instance().get_waste_at(spawn_pos)
+			
+			if waste < 10.0:
+				break
+			elif waste < 30.0 and randf() < 0.5:
+				break
+			
+			attempts += 1
+		
 		get_parent().add_child(food)
 		food.global_position = spawn_pos

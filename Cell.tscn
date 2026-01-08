@@ -10,6 +10,22 @@ radius = 300.0
 
 [node name="Cell" type="Node2D"]
 script = ExtResource("1_yh0nt")
+energy = null
+energy_decay_rate = null
+hunger_threshold = null
+full_threshold = null
+nucleus_size = null
+max_nucleus_size = null
+base_membrane_radius = null
+max_membrane_radius = null
+vertex_count = null
+stiffness = null
+damping = null
+wobble_intensity = null
+movement_deformation = null
+fusion_blend_smoothness = null
+fusion_max_stretch = null
+max_connections = null
 
 [node name="Polygon2D" type="Polygon2D" parent="."]
 color = Color(0.7309845, 0.9999998, 0.7118558, 1)

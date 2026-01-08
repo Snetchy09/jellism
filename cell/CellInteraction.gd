@@ -9,7 +9,6 @@ func handle_area_entered(cell: Node2D, area: Area2D):
 	
 	# 1. FOOD
 	if area.is_in_group("food"):
-		print("DEBUG: Eating food!")
 		area.queue_free()
 		cell.energy = clamp(cell.energy + 25.0, 0, 150)
 		if cell.energy >= 110.0:
@@ -27,20 +26,15 @@ func handle_area_entered(cell: Node2D, area: Area2D):
 	if not other_cell or other_cell == cell:
 		return
 	
-	print("DEBUG:  CELL COLLISION!  Me:  ", cell.name, " (role ", cell.current_role, ") Other: ", other_cell.name, " (role ", other_cell.current_role, ")")
-	
 	# CARNIVORE EATING
 	if cell.current_role == 5:  # CARNIVORE
-		print("🔴 CARNIVORE ATTACKING!")
 		if not eating_target or not is_instance_valid(eating_target):
 			eating_target = other_cell
 			eating_progress = 0.0
-			print("🔴 STARTED EATING PREY")
 		return
 	
 	# FLEE FROM CARNIVORE
 	if other_cell.current_role == 5 and other_cell. organism_level >= 1:
-		print("DEBUG: ", cell.name, " FLEEING FROM CARNIVORE")
 		cell.external_force += (cell.global_position - other_cell.global_position).normalized() * 1000
 		return
 	
@@ -51,7 +45,6 @@ func handle_area_entered(cell: Node2D, area: Area2D):
 			if randf() < fusion_chance:
 				cell.connected_cells.append(other_cell)
 				other_cell.connected_cells.append(cell)
-				print("Organism Fusion!")
 
 func update_eating(cell: Node2D, delta: float):
 	# If no target or target is dead, stop eating
@@ -96,8 +89,6 @@ func update_eating(cell: Node2D, delta: float):
 	# Pull prey toward carnivore
 	eating_target.external_force += (eating_target.global_position - cell. global_position).normalized() * 500.0
 	
-	print("🔴 EATING PROGRESS: ", eating_progress * 100, "% | Prey HP: ", eating_target.energy)
-	
 	# When finished eating
 	if eating_target.energy <= 0 or eating_progress >= 1.0:
 		finish_eating(cell, eating_target)
@@ -113,8 +104,6 @@ func finish_eating(cell: Node2D, prey: Node2D):
 	
 	cell. energy = clamp(cell.energy + energy_gained, 0, 150)
 	prey.queue_free()
-	
-	print("🔴 MEAL COMPLETE!  Gained: ", energy_gained, " energy")
 	
 	if cell.energy >= 120.0:
 		cell.reproduction.start_division(cell)
@@ -156,5 +145,3 @@ func attack_cell(cell: Node2D, target: Node2D):
 	var push_force = 600.0
 	target.external_force += (target. global_position - cell.global_position).normalized() * push_force
 	cell.external_force += (cell.global_position - target.global_position).normalized() * (push_force * 0.5)
-	
-	print("🔴 CARNIVORE ATTACK!  Damage:  ", damage, " Target HP: ", target.energy)
