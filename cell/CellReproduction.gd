@@ -63,15 +63,6 @@ func complete_division(cell: Node2D):
 		sister.organism_level = cell.organism_level
 		sister.maturity = cell.maturity
 		
-		if cell.current_role == 5:
-			sister.current_role = 5
-			sister.modulate = Color(2.5, 0.1, 0.1)
-			print("🔴 CARNIVORE OFFSPRING SPAWNED!")
-		elif cell.organism_level == 1 and randf() < 0.05:
-			sister.current_role = 5
-			sister.modulate = Color(2.5, 0.1, 0.1)
-			print("🔴 WILD CARNIVORE MUTATION!")
-		
 		sister.genetics = cell.genetics.copy()
 		sister.modulate = sister.genetics.get_color()
 		

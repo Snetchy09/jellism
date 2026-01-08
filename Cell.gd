@@ -143,15 +143,12 @@ func _draw():
 	visuals.draw(self, time)
 
 func _on_body_area_area_entered(area: Area2D):
-	print("DEBUG: Body area entered: ", area.name, " in cell ", name)
 	interaction.handle_area_entered(self, area)
 
 func _on_sense_area_area_entered(area: Area2D):
-	print("DEBUG: Sense area entered: ", area.name)
 	interaction.handle_sense_entered(self, area)
 
 func _on_sense_area_area_exited(area: Area2D):
-	print("DEBUG: Sense area exited: ", area.name)
 	interaction.handle_sense_exited(self, area)
 
 func _on_tree_exited():
