@@ -8,7 +8,7 @@ radius = 60.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_uween"]
 radius = 300.0
 
-[node name="Cell" type="Node2D"]
+[node name="cell" type="Node2D"]
 script = ExtResource("1_yh0nt")
 energy = null
 energy_decay_rate = null
@@ -46,6 +46,8 @@ shape = SubResource("CircleShape2D_uween")
 
 [node name="Nucleus" type="Polygon2D" parent="."]
 color = Color(3.133312e-05, 0.776498, 0.17558733, 1)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
 
 [connection signal="area_entered" from="BodyArea" to="." method="_on_body_area_area_entered"]
 [connection signal="area_entered" from="SenseArea" to="." method="_on_sense_area_area_entered"]

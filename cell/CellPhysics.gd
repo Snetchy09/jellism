@@ -34,23 +34,34 @@ func apply_bond_physics(cell: Node2D, delta: float):
 			if randf() < 0.01:
 				cell.connected_cells.erase(other)
 				other.connected_cells.erase(cell)
-				print("Connection Snapped!")
 
 func update_membrane(cell: Node2D, time: float, delta: float):
 	var local_poly = PackedVector2Array()
 	var move_dir = cell.global_position.direction_to(cell.target_pos)
 	
+	var spikiness = cell.genetics.dna["spikiness"]
+	var hairiness = cell.genetics.dna["hairiness"]
+	var neck_length = cell.genetics.dna["neck_length"]
+	var waviness = cell.genetics.dna["membrane_waviness"]
+	
 	for i in range(cell.vertex_count):
 		var angle = (PI * 2 / cell.vertex_count) * i
 		var dir_vec = Vector2(cos(angle), sin(angle))
 		
-		var wobble = cell.noise.get_noise_2d(i * 10.0, time * 2.0) * (cell.current_radius * 0.25)
+		var wobble = cell.noise.get_noise_2d(i * 10.0, time * 2.0) * (cell.current_radius * 0.25) * waviness
 		var v_target_radius = cell.current_radius + wobble
 		
 		if cell.global_position.distance_to(cell.target_pos) > 15.0 and not cell.is_splitting:
 			v_target_radius += dir_vec.dot(move_dir) * (cell.current_radius * 0.5)
 		
-		v_target_radius = _apply_role_deformation(cell, i, time, v_target_radius)
+		if spikiness > 0.3 and i % int(1.0 + (1.0 - spikiness) * 4.0) == 0:
+			v_target_radius += cell.current_radius * spikiness * 0.6
+		
+		if neck_length > 0.2:
+			var move_alignment = dir_vec.dot(move_dir)
+			if move_alignment > 0.5:
+				v_target_radius += cell.current_radius * neck_length * move_alignment
+		
 		var v_target = cell.global_position + (dir_vec * v_target_radius)
 		
 		for other in cell.connected_cells:
